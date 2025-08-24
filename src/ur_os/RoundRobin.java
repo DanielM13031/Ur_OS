@@ -31,31 +31,15 @@ public class RoundRobin extends Scheduler{
         this.multiqueue = multiqueue;
     }
     
+
+    
     void resetCounter(){
         cont=0;
     }
    
     @Override
     public void getNext(boolean cpuEmpty) {
-    // Si la CPU no está vacía, verificamos si el quantum ha expirado.
-        if (!cpuEmpty) {
-            cont++;
-            if (cont >= q) {
-                resetCounter();
-                os.interrupt(InterruptType.SCHEDULER_CPU_TO_RQ, null);
-                // La interrupción dejó la CPU vacía, así que actualizamos el estado para la siguiente comprobación.
-                cpuEmpty = true;
-            }
-        }
-
-        // Si la CPU está vacía (ya sea porque lo estaba antes o porque la acabamos de vaciar)
-        // y hay procesos en espera, cargamos el siguiente.
-        if (cpuEmpty && !processes.isEmpty()) {
-            Process p = processes.pop();
-            os.interrupt(InterruptType.SCHEDULER_RQ_TO_CPU, p);
-            // Reiniciamos el contador para el nuevo proceso que acaba de entrar.
-            resetCounter();
-        }
+        //Insert code here
     }
     
     
