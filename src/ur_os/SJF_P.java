@@ -49,8 +49,8 @@ public class SJF_P extends Scheduler{
         int runningRem = running.getRemainingTimeInCurrentBurst();
         int bestRem    = best.getRemainingTimeInCurrentBurst();
 
-        if (bestRem < runningRem) {
-            // Apropiacion
+        if (bestRem < runningRem ||
+        (bestRem == runningRem && tieBreaker(best, running) == best)) {
             os.interrupt(InterruptType.SCHEDULER_CPU_TO_RQ, running);
             processes.remove(best);
             os.interrupt(InterruptType.SCHEDULER_RQ_TO_CPU, best);
