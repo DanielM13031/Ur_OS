@@ -67,7 +67,4 @@ public class CPU {
         else
             return "CPU: Empty";
     }
-    
-   
-    
 }
