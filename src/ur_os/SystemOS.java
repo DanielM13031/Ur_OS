@@ -496,7 +496,6 @@ public final class SystemOS implements Runnable{
                 finishedProcesses++;
             }
         }
-        if (finishedProcesses == 0) return 0.0;
         return totalTurnaroundTime / finishedProcesses;
     }
     
@@ -525,13 +524,13 @@ public final class SystemOS implements Runnable{
                 finishedProcesses++;
             }
         }
-        if (finishedProcesses == 0) return 0;
         return totalWaitingTime / finishedProcesses;    
     }
     
     //Everytime a process is taken out from memory, when a interruption occurs
-    // Esta mal 
     public double calcAvgContextSwitches() {
+        if (processes.isEmpty()) return 0;
+
         int contextSwitches = 0;
         int prevProcess = -1;
 
@@ -550,8 +549,9 @@ public final class SystemOS implements Runnable{
     
     
     //Just context switches based on the execution timeline
-    // Esta mal 
     public double calcAvgContextSwitches2() {
+        if (processes.isEmpty()) return 0;
+
         int contextSwitches = 0;
         int prevProcess = -1;
         int currentProcess = 0;
@@ -568,23 +568,22 @@ public final class SystemOS implements Runnable{
             
             return (double) contextSwitches / processes.size();
     }
-    // Esta mal 
+
     public double calcResponseTime() { 
         if (processes.isEmpty()) return 0;
         
         double totalResponseTime = 0;
         int count = 0;
         for (Process p : processes) {
-            Integer firstExec = p.getFirstExecutionTime();
+            Integer firstExec = p.getFirstExecutionTime() - 1;
             if (firstExec != -1) {
                 totalResponseTime += (firstExec - p.getTime_init());
                 count++;
             }
         }
-        if (count == 0) return 0.0;
         return totalResponseTime / count;
     }
-    
+
     public void compareFiles(String filePath1, String filePath2) {
         try (BufferedReader reader1 = new BufferedReader(new FileReader(filePath1));
              BufferedReader reader2 = new BufferedReader(new FileReader(filePath2))) {
@@ -610,7 +609,4 @@ public final class SystemOS implements Runnable{
             System.err.println("Error comparing files: " + e.getMessage());
         }
     }
-    
-    
-    
 }
