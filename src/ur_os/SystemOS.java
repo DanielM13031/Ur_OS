@@ -537,10 +537,10 @@ public final class SystemOS implements Runnable{
         for (int i = 0; i < execution.size(); i++) {
             int currentProcess = execution.get(i);
 
-            if (currentProcess != prevProcess) {
+            if (currentProcess != prevProcess && currentProcess != -1) {
                 contextSwitches++;
             }
-
+            
             prevProcess = currentProcess;
         }
         
@@ -554,21 +554,20 @@ public final class SystemOS implements Runnable{
 
         int contextSwitches = 0;
         int prevProcess = -1;
-        int currentProcess = 0;
 
-        for (int i = 0; i < execution.size(); i++) {
-            currentProcess = execution.get(i);
-
-            if (currentProcess != prevProcess && currentProcess != -1) {
+        for (int i = 1; i < execution.size(); i++) {
+            int currentProcess = execution.get(i);
+            
+            if (currentProcess != prevProcess) {
                 contextSwitches++;
             }
             
             prevProcess = currentProcess;
-            }
-            
-            return (double) contextSwitches / processes.size();
+        }
+        
+        return (double) contextSwitches / processes.size();
     }
-
+    
     public double calcResponseTime() { 
         if (processes.isEmpty()) return 0;
         
