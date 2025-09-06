@@ -32,10 +32,30 @@ public class SJF_P extends Scheduler{
     
    
     @Override
-    public void getNext(boolean cpuEmpty) {
-        
-        //Insert code here
+public void getNext(boolean cpuEmpty) {
+        // Selección por menor tiempo(Funcion: select())
+        if (this.isEmpty()) return;
 
-     }
+        Process best = select();
+        if (best == null) return;
+
+        Process running = os.getProcessInCPU();
+        //Despachar el mejor si CPU está vacía
+        if (running == null) {
+            processes.remove(best);
+            os.interrupt(InterruptType.SCHEDULER_RQ_TO_CPU, best);
+            return;
+        }
+
+        int runningRem = running.getRemainingTimeInCurrentBurst();
+        int bestRem    = best.getRemainingTimeInCurrentBurst();
+
+        if (bestRem < runningRem ||
+        (bestRem == runningRem && tieBreaker(best, running) == best)) {
+            os.interrupt(InterruptType.SCHEDULER_CPU_TO_RQ, running);
+            processes.remove(best);
+            os.interrupt(InterruptType.SCHEDULER_RQ_TO_CPU, best);
+        }
+    }
  
 }
