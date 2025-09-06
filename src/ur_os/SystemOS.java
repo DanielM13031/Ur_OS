@@ -474,73 +474,108 @@ public final class SystemOS implements Runnable{
     }
     
     public double calcCPUUtilization() {
+        if (processes.isEmpty()) {
+            return 0;
+        }
+
         int cpuBusyTime = 0;
 
-        for (Integer pid : execution) {
-            if (pid != -1) {
+        for (int i = 0; i < execution.size(); i++) {
+            int p = execution.get(i);
+            if (p!= -1) {
                 cpuBusyTime++;
             }
         }
-        if (clock == 0) return 0.0;
+
+        if (clock == 0) {
+            return 0;
+        }
+
         return (double) cpuBusyTime / clock;
     }
     
     public double calcTurnaroundTime() {
-        if (processes.isEmpty()) return 0;
-    
+        if (processes.isEmpty()) {
+            return 0;
+        }
+
         double totalTurnaroundTime = 0;
         int finishedProcesses = 0;
-        for (Process p : processes) {
+
+        for (int i = 0; i < processes.size(); i++) {
+            Process p = processes.get(i);
             if (p.isFinished()) {
                 totalTurnaroundTime += (p.getTime_finished() - p.getTime_init());
                 finishedProcesses++;
             }
         }
+
+        if (finishedProcesses == 0) {
+            return 0;
+        }
+
         return totalTurnaroundTime / finishedProcesses;
     }
     
     public double calcThroughput() {
-        if (clock == 0) return 0;
+        if (clock == 0) {
+            return 00;
+        }
 
         int finishedProcesses = 0;
-        for(Process p : processes){
-            if(p.isFinished()){
+
+        for (int i = 0; i < processes.size(); i++) {
+            Process p = processes.get(i);
+            if (p.isFinished()) {
                 finishedProcesses++;
             }
         }
+
         return (double) finishedProcesses / clock;
     }
     
     public double calcAvgWaitingTime() {
-        if (processes.isEmpty()) return 0;
-        
+        if (processes.isEmpty()) {
+            return 0;
+        }
+
         double totalWaitingTime = 0;
         int finishedProcesses = 0;
-        for (Process p : processes) {
-             if (p.isFinished()) {
+
+        for (int i = 0; i < processes.size(); i++) {
+            Process p = processes.get(i);
+            if (p.isFinished()) {
                 int turnaroundTime = p.getTime_finished() - p.getTime_init();
                 int totalExecutionTime = p.getTotalExecutionTime();
                 totalWaitingTime += (turnaroundTime - totalExecutionTime);
                 finishedProcesses++;
             }
         }
-        return totalWaitingTime / finishedProcesses;    
+
+        if (finishedProcesses == 0) {
+            return 0;
+        }
+
+        return totalWaitingTime / finishedProcesses;
     }
     
     //Everytime a process is taken out from memory, when a interruption occurs
     public double calcAvgContextSwitches() {
-        if (processes.isEmpty()) return 0;
+        if (processes.isEmpty()) {
+            return 0;
+        }
 
+        int currentProcess = 0;
         int contextSwitches = 0;
         int prevProcess = -1;
 
         for (int i = 0; i < execution.size(); i++) {
-            int currentProcess = execution.get(i);
+            currentProcess = execution.get(i);
 
             if (currentProcess != prevProcess && currentProcess != -1) {
                 contextSwitches++;
             }
-            
+
             prevProcess = currentProcess;
         }
         
@@ -550,37 +585,25 @@ public final class SystemOS implements Runnable{
     
     //Just context switches based on the execution timeline
     public double calcAvgContextSwitches2() {
-        if (processes.isEmpty()) return 0;
+        if (processes.isEmpty()) {
+            return 0;
+        }
 
         int contextSwitches = 0;
         int prevProcess = -1;
+        int currentProcess = 0;
 
-        for (int i = 1; i < execution.size(); i++) {
-            int currentProcess = execution.get(i);
-            
+        for (int i = 0; i < execution.size(); i++) {
+            currentProcess = execution.get(i);
+
             if (currentProcess != prevProcess) {
                 contextSwitches++;
             }
             
             prevProcess = currentProcess;
-        }
-        
-        return (double) contextSwitches / processes.size();
-    }
-    
-    public double calcResponseTime() { 
-        if (processes.isEmpty()) return 0;
-        
-        double totalResponseTime = 0;
-        int count = 0;
-        for (Process p : processes) {
-            Integer firstExec = p.getFirstExecutionTime() - 1;
-            if (firstExec != -1) {
-                totalResponseTime += (firstExec - p.getTime_init());
-                count++;
             }
-        }
-        return totalResponseTime / count;
+            
+            return (double) contextSwitches  / processes.size();
     }
 
     public void compareFiles(String filePath1, String filePath2) {
