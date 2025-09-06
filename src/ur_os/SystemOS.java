@@ -565,7 +565,7 @@ public final class SystemOS implements Runnable{
             return 0;
         }
 
-        int currentProcess = 0;
+        int currentProcess;
         int contextSwitches = 0;
         int prevProcess = -1;
 
@@ -589,10 +589,10 @@ public final class SystemOS implements Runnable{
             return 0;
         }
 
+        int currentProcess;
         int contextSwitches = 0;
         int prevProcess = -1;
-        int currentProcess = 0;
-
+        
         for (int i = 0; i < execution.size(); i++) {
             currentProcess = execution.get(i);
 
@@ -604,6 +604,31 @@ public final class SystemOS implements Runnable{
             }
             
             return (double) contextSwitches  / processes.size();
+    }
+
+    public double calcResponseTime() { 
+        if (processes.isEmpty()) {
+            return 0;
+        }
+        
+        double totalResponseTime = 0;
+        int count = 0;
+        int executionTime;
+        int firstExec;
+
+        for (int i = 0; i < processes.size(); i++) {
+            Process p = processes.get(i);
+            executionTime = p.getFirstExecutionTime();
+            firstExec = executionTime - 1;
+            if (firstExec!= -1) {
+                totalResponseTime += (firstExec - p.getTime_init());
+                count++;
+            }
+        }
+        if (count == 0) {
+            return 0;
+        }
+        return totalResponseTime / count;
     }
 
     public void compareFiles(String filePath1, String filePath2) {
