@@ -31,8 +31,6 @@ public class RoundRobin extends Scheduler{
         this.multiqueue = multiqueue;
     }
     
-
-    
     void resetCounter(){
         cont=0;
     }
