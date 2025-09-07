@@ -1,59 +1,124 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package ur_os;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
+import java.util.ArrayDeque;
 
-/**
- *
- * @author prestamour
- */
-public class MFQ extends Scheduler{
+public class MFQ extends Scheduler {
 
-    int currentScheduler;
-    
-    private ArrayList<Scheduler> schedulers;
-    //This may be a suggestion... you may use the current sschedulers to create the Multilevel Feedback Queue, or you may go with a more tradicional way
-    //based on implementing all the queues in this class... it is your choice. Change all you need in this class.
-    
-    MFQ(OS os){
+    private ArrayList<Scheduler> queues;
+    private ArrayList<ArrayDeque<Process>> levels;
+    private HashMap<Integer,Integer> levelByPid;
+    private int[] quanta;
+    private int currentScheduler;
+    private int tickCounter;
+    private Integer runningPid;
+    private boolean ready;
+
+    public MFQ(OS os) {
         super(os);
-        currentScheduler = -1;
-        schedulers = new ArrayList();
+        queues = new ArrayList<>();
     }
-    
-    MFQ(OS os, Scheduler... s){ //Received multiple arrays
+
+    public MFQ(OS os, Scheduler... schedulers) {
         this(os);
-        schedulers.addAll(Arrays.asList(s));
-        if(s.length > 0)
-            currentScheduler = 0;
+        queues.addAll(Arrays.asList(schedulers));
     }
-        
+
+    private void ensureInit(){
+        if(ready) return;
+        int n = queues.size();
+        levels = new ArrayList<>();
+        for(int i=0;i<n;i++) levels.add(new ArrayDeque<>());
+        quanta = new int[n];
+        for(int i=0;i<n;i++){
+            Scheduler s = queues.get(i);
+            quanta[i] = (s instanceof RoundRobin) ? ((RoundRobin)s).q : Integer.MAX_VALUE;
+        }
+        levelByPid = new HashMap<>();
+        currentScheduler = -1;
+        tickCounter = 0;
+        runningPid = null;
+        ready = true;
+    }
+
     @Override
     public void addProcess(Process p){
-       //Overwriting the parent's addProcess(Process p) method may be necessary in order to decide what to do with process coming from the CPU.
-        
+        ensureInit();
+        int pid = p.getPid();
+        Integer known = levelByPid.get(pid);
+        if(runningPid != null && pid == runningPid){
+            int from = (known == null ? 0 : known);
+            int to = Math.min(from + 1, levels.size() - 1);
+            levelByPid.put(pid, to);
+            levels.get(to).offerLast(p);
+        }else{
+            levelByPid.put(pid, 0);
+            levels.get(0).offerLast(p);
+        }
     }
-    
+
     void defineCurrentScheduler(){
-        //This methos is siggested to help you find the scheduler that should be the next in line to provide processes... perhaps the one with process in the queue?
+        ensureInit();
+        currentScheduler = -1;
+        for(int i=0;i<levels.size();i++){
+            if(!levels.get(i).isEmpty()){ currentScheduler = i; break; }
+        }
     }
-    
-   
-    @Override
-    public void getNext(boolean cpuEmpty) {
-        //Suggestion: now that you know on which scheduler a process is, you need to keep advancing that scheduler. If it a preemptive one, you need to notice the changes
-        //that it may have caused and verify if the change is coherent with the priority policy for the queues.
-  
-    }
-    
-    @Override
-    public void newProcess(boolean cpuEmpty) {} //Non-preemtive in this event
 
     @Override
-    public void IOReturningProcess(boolean cpuEmpty) {} //Non-preemtive in this event
-    
+    public void getNext(boolean cpuEmpty) {
+        ensureInit();
+        if(!cpuEmpty){
+            Process inCPU = os.getProcessInCPU();
+            if(inCPU == null){
+                runningPid = null;
+                tickCounter = 0;
+                defineCurrentScheduler();
+                if(currentScheduler == -1) return;
+                ArrayDeque<Process> rq = levels.get(currentScheduler);
+                if(!rq.isEmpty()){
+                    Process p = rq.pollFirst();
+                    runningPid = p.getPid();
+                    tickCounter = 0;
+                    os.interrupt(InterruptType.SCHEDULER_RQ_TO_CPU, p);
+                }
+                return;
+            }
+            Integer lvl = levelByPid.get(inCPU.getPid());
+            if(lvl == null){
+                if(currentScheduler < 0) currentScheduler = 0;
+                levelByPid.put(inCPU.getPid(), currentScheduler);
+            }else currentScheduler = lvl;
+            runningPid = inCPU.getPid();
+            tickCounter++;
+            int q = quanta[currentScheduler];
+            if(q != Integer.MAX_VALUE && tickCounter >= q){
+                os.interrupt(InterruptType.SCHEDULER_CPU_TO_RQ, null);
+                runningPid = null;
+                tickCounter = 0;
+                defineCurrentScheduler();
+                if(currentScheduler == -1) return;
+                ArrayDeque<Process> rq = levels.get(currentScheduler);
+                if(!rq.isEmpty()){
+                    Process np = rq.pollFirst();
+                    runningPid = np.getPid();
+                    tickCounter = 0;
+                    os.interrupt(InterruptType.SCHEDULER_RQ_TO_CPU, np);
+                }
+            }
+            return;
+        }
+        defineCurrentScheduler();
+        if(currentScheduler == -1){ runningPid = null; tickCounter = 0; return; }
+        ArrayDeque<Process> q = levels.get(currentScheduler);
+        if(!q.isEmpty()){
+            Process p = q.pollFirst();
+            runningPid = p.getPid();
+            tickCounter = 0;
+            os.interrupt(InterruptType.SCHEDULER_RQ_TO_CPU, p);
+        }
+    }
+
+    @Override public void newProcess(boolean cpuEmpty) {}
+    @Override public void IOReturningProcess(boolean cpuEmpty) {}
 }
