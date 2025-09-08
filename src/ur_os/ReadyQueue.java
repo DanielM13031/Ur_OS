@@ -50,6 +50,12 @@ public class ReadyQueue {
             case FAIR:
                 // Implementar si se desea
                 break;
+            case HRRN_NP:
+                s = new HRRN_NP(os);
+                createSchedulerFile("HRRN_NP");
+                break;
+
+
         }
 
     }
