@@ -15,6 +15,6 @@ public enum SchedulerType {
     RR,
     PRIORITY,
     MFQ,
-    FAIR
-    
+    FAIR,
+    HRRN_NP
 }
