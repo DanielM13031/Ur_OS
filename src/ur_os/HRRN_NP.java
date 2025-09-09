@@ -4,99 +4,85 @@
  */
 package ur_os;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
 
 public class HRRN_NP extends Scheduler {
 
-    private int currentTime = 0;
-    private final List<Process> readyQueue = new ArrayList<>();
+    // HashMap para registrar el tiempo de llegada de cada proceso a la cola de listos.
+    // La clave es el PID del proceso (Integer) y el valor es el tiempo (Integer).
+    private final HashMap<Integer, Integer> arrivalTimes = new HashMap<>();
 
     public HRRN_NP(OS os) {
         super(os);
     }
 
+    /**
+     * Sobrescribimos addProcess para registrar el tiempo de llegada del proceso
+     * a la cola de listos.
+     */
+    @Override
+    public void addProcess(Process p) {
+        // Registramos el tiempo actual del sistema como el tiempo de llegada a la cola de listos.
+        arrivalTimes.put(p.getPid(), os.system.getTime());
+        super.addProcess(p); // Llamamos al método de la clase base para añadir el proceso.
+    }
+
     @Override
     public void getNext(boolean cpuEmpty) {
-        if (!cpuEmpty) return; // No expropiativo: si CPU está ocupada, no hago nada
-
-        // 1) Mover procesos que ya llegaron a la readyQueue
-        Iterator<Process> it = processes.iterator();
-        while (it.hasNext()) {
-            Process p = it.next();
-            if (p.getTime_init() <= currentTime) {
-                readyQueue.add(p);
-                it.remove();
-            }
-        }
-
-        // 2) Si no hay listos, avanza el reloj
-        if (readyQueue.isEmpty()) {
-            currentTime++;
+        // El planificador solo actúa si la CPU está libre y hay procesos en la cola.
+        if (!cpuEmpty || processes.isEmpty()) {
             return;
         }
 
-        // 3) Elegir el proceso con MAYOR Response Ratio
-        Process best = null;
-        double bestRR = -1.0;
+        Process bestProcess = null;
+        double highestRR = -1.0;
+        int currentTime = os.system.getTime(); // Obtenemos el tiempo actual del reloj del sistema.
 
-        for (Process p : readyQueue) {
-            int burst = nextCpuBurst(p);
-            int waiting = currentTime - p.getTime_init();
-            double rr = (burst == 0) ? Double.MAX_VALUE
-                                     : (waiting + (double)burst) / burst;
+        // Iteramos sobre los procesos para encontrar el que tenga el mayor Response Ratio.
+        for (Process p : processes) {
+            // Obtenemos el tiempo de llegada de nuestro HashMap.
+            int arrivalTime = arrivalTimes.getOrDefault(p.getPid(), p.getTime_init());
+            
+            // Calculamos el tiempo de espera.
+            int waitingTime = currentTime - arrivalTime;
+            
+            // Obtenemos la duración de la siguiente ráfaga de CPU.
+            int burstTime = p.getRemainingTimeInCurrentBurst();
 
-            if (rr > bestRR || (rr == bestRR && tieBreak(p, best))) {
-                bestRR = rr;
-                best = p;
+            // Evitamos la división por cero si un proceso tiene una ráfaga de 0.
+            if (burstTime == 0) continue;
+
+            // Calculamos el Response Ratio (RR).
+            double responseRatio = (double) (waitingTime + burstTime) / burstTime;
+
+            if (bestProcess == null || responseRatio > highestRR) {
+                highestRR = responseRatio;
+                bestProcess = p;
+            } else if (responseRatio == highestRR) {
+                // Si hay un empate, utilizamos el tie-breaker.
+                bestProcess = tieBreaker(bestProcess, p);
             }
         }
 
-        // 4) Ejecutar el proceso seleccionado (CPU burst completo)
-        if (best != null) {
-            readyQueue.remove(best);
-            int burst = nextCpuBurst(best);
-            os.interrupt(InterruptType.SCHEDULER_RQ_TO_CPU, best);
-            currentTime += burst;  // avanzar el reloj
+        // Si hemos seleccionado un proceso, lo enviamos a la CPU.
+        if (bestProcess != null) {
+            // Lo eliminamos de la lista de procesos y de nuestro registro de tiempos.
+            processes.remove(bestProcess);
+            arrivalTimes.remove(bestProcess.getPid());
             
-            
-            
-            /*int burst = nextCpuBurst(best);
-
-            dispatch(best);         // pasa el proceso a CPU
-            runFor(best, burst);    // simula su ejecución
-            currentTime += burst;
-
-            onProcessCpuBurstFinished(best); // notifica que terminó su burst*/
+            // Enviamos la interrupción al sistema operativo para que lo despache a la CPU.
+            os.interrupt(InterruptType.SCHEDULER_RQ_TO_CPU, bestProcess);
         }
     }
 
     @Override
     public void newProcess(boolean cpuEmpty) {
-        // HRRN no es preventivo 
+        // HRRN no es pre-emptivo, así que no se necesita ninguna acción aquí.
     }
 
     @Override
     public void IOReturningProcess(boolean cpuEmpty) {
-        // HRRN no es preventivo 
-    }
-
-    // ---------- Helpers ----------
-    private int nextCpuBurst(Process p) {
-        // Usa el tiempo de ráfaga que expone Process
-        return p.getBurstTime();
-    }
-
-
-    private void runFor(Process p, int burst) {
-        
-    }
-
-    private void onProcessCpuBurstFinished(Process p) {
-      
-    }
-
-    private boolean tieBreak(Process a, Process b) {
-        if (b == null) return true;
-        return a.getTime_init() < b.getTime_init(); // más antiguo primero
+        // HRRN no es pre-emptivo, no se necesita ninguna acción aquí.
     }
 }
