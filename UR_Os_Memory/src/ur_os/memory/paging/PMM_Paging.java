@@ -102,23 +102,29 @@ public class PMM_Paging extends ProcessMemoryManager{
     
     public MemoryAddress getPageMemoryAddressFromLocalAddress(int locAdd){
         
-        //Include your code here
-        
-        return new MemoryAddress(-1, -1);
+        if (locAdd < 0) return new MemoryAddress(-1, -1);
+        final int page = locAdd / OS.PAGE_SIZE;
+        final int offset = locAdd % OS.PAGE_SIZE;
+        return new MemoryAddress(page, offset);
     }
     
     public int getFrameMemoryAddressFromLogicalMemoryAddress(int page){
-        
-        //Include your code here
-        
-        return -1;
+
+        if (page < 0) return -1;
+        if(pt.isPageValid(page)) return -1;
+        int frameId = pt.getFrameIdFromPage(page);
+        if(frameId < 0) return -1;
+        return frameId * OS.PAGE_SIZE;
     }
     
     public MemoryAddress getFrameMemoryAddressFromLogicalMemoryAddress(MemoryAddress m){
         
-        //Include your code here
-        
-        return new MemoryAddress(-1, -1);
+        if (m == null) return new MemoryAddress(-1, -1);
+        int offset = m.getOffset();
+        int page = m.getDivision();
+        int base = getFrameMemoryAddressFromLogicalMemoryAddress(page);
+        if(base < 0) return new MemoryAddress(-1, -1);
+        return new MemoryAddress(base, offset);
     }
     
     
@@ -128,14 +134,21 @@ public class PMM_Paging extends ProcessMemoryManager{
     
     public MemoryAddress getVFrameMemoryAddressFromLogicalMemoryAddress(MemoryAddress m){
         
-        //Include your code here
+        if (m == null) return new MemoryAddress(-1, -1);
+        int offset = m.getOffset();
+        int page = m.getDivision();
+
+        if (page < 0) return new MemoryAddress(-1, -1);
+
+        int vframeId = (vpt != null) ? vpt.getFrameIdFromPage(page) : -1;
+        if (vframeId < 0) return new MemoryAddress(-1, -1);
         
-        return new MemoryAddress(-1, -1);
+        int vbase = vframeId * OS.PAGE_SIZE;
+        return new MemoryAddress(vbase, offset);
     }
     
-   
     
-     @Override
+    @Override
     public String toString(){
         return pt.toString();
     }
