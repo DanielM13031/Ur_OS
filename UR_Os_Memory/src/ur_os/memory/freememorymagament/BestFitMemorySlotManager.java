@@ -19,7 +19,6 @@ public class BestFitMemorySlotManager extends FreeMemorySlotManager {
         MemorySlot chosen = null;
         int bestSize = Integer.MAX_VALUE;
 
-        // Recorre la lista de huecos y elige el más pequeño que alcance
         for (MemorySlot s : list) {
             if (s.getSize() >= size && s.getSize() < bestSize) {
                 chosen = s;
@@ -28,12 +27,11 @@ public class BestFitMemorySlotManager extends FreeMemorySlotManager {
         }
 
         if (chosen != null) {
-            // Asigna 'size' desde el slot elegido (divide el hueco)
+            System.out.println("[BEST] request=" + size + " -> chosen " + chosen);
             return chosen.assignMemory(size);
         }
 
-        // Si no hay hueco suficiente
-        System.out.println("Error: Memory cannot allocate a slot big enough for the requested memory");
+        System.out.println("[BEST] request=" + size + " -> NO FIT");
         return null;
     }
 }
