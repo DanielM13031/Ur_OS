@@ -16,22 +16,10 @@ public class WorstFitMemorySlotManager extends FreeMemorySlotManager{
     
     @Override
     public MemorySlot getSlot(int size) {
-        MemorySlot chosen = null;
-        int worstSize = Integer.MIN_VALUE;
-
-        for (MemorySlot s : list) {
-            if (s.getSize() >= size && s.getSize() > worstSize) {
-                chosen = s;
-                worstSize = s.getSize();
-            }
-        }
-
-        if (chosen != null) {
-            System.out.println("[WORST] request=" + size + " -> chosen " + chosen);
-            return chosen.assignMemory(size);
-        }
-
-        System.out.println("[WORST] request=" + size + " -> NO FIT");
-        return null;
+        MemorySlot m = null;
+        //ToDo
+        
+        return m;
     }
+    
 }
