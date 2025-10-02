@@ -1,0 +1,5 @@
+UR_Os_Memory/build/
+UR_Os_Memory/dist/
+UR_Os_Memory/nbproject/private/
+*.class
+*.log
