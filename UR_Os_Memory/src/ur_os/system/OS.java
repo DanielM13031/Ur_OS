@@ -56,7 +56,7 @@ public class OS {
     
     public static final int MAX_PROCESS_PRIORITY = 10; //Page size in bytes
     public static final int PAGE_SIZE = 64; //Page size in bytes
-    public static final MemoryManagerType SMM = MemoryManagerType.SEGMENTATION;
+    public static final MemoryManagerType SMM = MemoryManagerType.PAGING;
     public static final FreeMemorySlotManagerType MSM = FreeMemorySlotManagerType.NEXT_FIT;
     
     public static final ProcessVirtualMemoryManagerType PVMM = ProcessVirtualMemoryManagerType.FIFO;
@@ -71,7 +71,7 @@ public class OS {
         this.cpu = cpu;
         lazySwap = false;//No preloading pages to reduce page faults
         
-         if(SMM == MemoryManagerType.PAGING){
+        if(SMM == MemoryManagerType.PAGING){
             smm = new SMM_Paging(this);
             fmm = new FreeFramesManager(SystemOS.MEMORY_SIZE);
             fvmm = new FreeFramesManager(SystemOS.SWAP_MEMORY_SIZE);

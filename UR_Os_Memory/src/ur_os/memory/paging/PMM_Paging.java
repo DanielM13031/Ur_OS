@@ -111,7 +111,7 @@ public class PMM_Paging extends ProcessMemoryManager{
     public int getFrameMemoryAddressFromLogicalMemoryAddress(int page){
 
         if (page < 0) return -1;
-        if(pt.isPageValid(page)) return -1;
+        if(!pt.isPageValid(page)) return -1;
         int frameId = pt.getFrameIdFromPage(page);
         if(frameId < 0) return -1;
         return frameId * OS.PAGE_SIZE;
