@@ -62,7 +62,8 @@ public class SystemOS implements Runnable{
         processes = new ArrayList();
         //initSimulationQueue();
         //initSimulationQueueSimple();
-        initSimulationQueueSimpler();
+        //initSimulationQueueSimpler();
+        initSimulationQueueTest();
         
 
         showProcesses();
@@ -196,7 +197,7 @@ public class SystemOS implements Runnable{
         p.addCPUInstructions(16);
         processes.add(p);
         
-        
+
         //Process 2
         p = new Process(2,6);
         p.setSize(250);
@@ -275,6 +276,41 @@ public class SystemOS implements Runnable{
         processes.add(p);
         
         clock = 0;
+    }
+
+    public void initSimulationQueueTest() {
+        processes.clear();
+        clock = 0;
+        
+        Process p0 = new Process(0, 0);
+        p0.setSize(200);
+        p0.addCPUInstructions(8); 
+        p0.addInstruction(new EndInstruction());
+        processes.add(p0);
+
+        Process p1 = new Process(2, 2);
+        p1.setSize(350);
+        p1.addCPUInstructions(6);
+        p1.addInstruction(new EndInstruction());
+        processes.add(p1);
+
+        Process p2 = new Process(4, 4);
+        p2.setSize(150);
+        p2.addCPUInstructions(10);
+        p2.addInstruction(new EndInstruction());
+        processes.add(p2);
+        
+        Process p3 = new Process(6, 6);
+        p3.setSize(300);
+        p3.addCPUInstructions(8); 
+        p3.addInstruction(new EndInstruction());
+        processes.add(p3);
+        
+        Process p4 = new Process(10, 10);
+        p4.setSize(100);
+        p4.addCPUInstructions(4); 
+        p4.addInstruction(new EndInstruction());
+        processes.add(p4);
     }
     
     

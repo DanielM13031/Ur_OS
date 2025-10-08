@@ -78,31 +78,53 @@ public class CPU {
     public void advanceInstruction(){
         
         Instruction i = p.getCurrentInstruction();
-        p.advanceInstruction();
-        Process tempp;
-        switch(i.getType()){
+
+        // Si no hay instrucción (índice fuera de rango o lista vacía):
+        if (i == null) {
+            // Trata esto como FIN del proceso de forma segura
+            Process tempp = removeProcess();
+            os.interrupt(InterruptType.FINISH_PROCESS, tempp);
+            return;
+        }
+
+        switch (i.getType()) {
             case MEMORY:
-                //executeMemoryOperation((MemoryInstruction) i);
                 System.out.println("Executing Memory instruction");
-                tempp = removeProcess();
-                os.interrupt(InterruptType.CPU_TO_MEMORY, tempp);
+                // NO avanzar aquí; va al módulo de memoria
+                {
+                    Process tempp = removeProcess();
+                    os.interrupt(InterruptType.CPU_TO_MEMORY, tempp);
+                }
                 break;
-                
+
             case IO:
                 System.out.println("Executing IO instruction");
-                tempp = removeProcess();
-                os.interrupt(InterruptType.CPU_TO_IO, tempp);
+                // NO avanzar aquí; va al módulo de IO
+                {
+                    Process tempp = removeProcess();
+                    os.interrupt(InterruptType.CPU_TO_IO, tempp);
+                }
                 break;
-                
+
             case CPU:
+                // Aquí sí ejecuta y luego avanza el PC
                 executeCPUOperation((CPUInstruction) i);
+                p.advanceInstruction();
                 break;
-            
+
             case END:
-                tempp = removeProcess();
-                os.interrupt(InterruptType.FINISH_PROCESS, tempp);
+                // Fin explícito
+                {
+                    Process tempp = removeProcess();
+                    os.interrupt(InterruptType.FINISH_PROCESS, tempp);
+                }
+                break;
+
+            default:
+                // Por seguridad, no debería ocurrir
                 break;
         }
+
         
         
     }

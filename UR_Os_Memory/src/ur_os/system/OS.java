@@ -34,6 +34,7 @@ import ur_os.virtualmemory.*;
 import ur_os.virtualmemory.ProcessVirtualMemoryManagerType;
 import static ur_os.virtualmemory.ProcessVirtualMemoryManagerType.FIFO;
 import static ur_os.virtualmemory.ProcessVirtualMemoryManagerType.LRU;
+import ur_os.memory.freememorymagament.NextFitMemorySlotManager;
 
 
 /**
@@ -90,20 +91,23 @@ public class OS {
             }
              
              
-            switch(MSM){
-            case FIRST_FIT:
-                fmm = new FirstFitMemorySlotManager(SystemOS.MEMORY_SIZE); //Memory
-                fvmm= new FirstFitMemorySlotManager(SystemOS.SWAP_MEMORY_SIZE); //Swap memory
-                break;
-            case BEST_FIT:
-                fmm = new BestFitMemorySlotManager(SystemOS.MEMORY_SIZE);
-                fvmm = new BestFitMemorySlotManager(SystemOS.SWAP_MEMORY_SIZE);
-                
-                break;
-            case WORST_FIT:
-                fmm = new WorstFitMemorySlotManager(SystemOS.MEMORY_SIZE);
-                fvmm = new WorstFitMemorySlotManager(SystemOS.SWAP_MEMORY_SIZE);
-                break;
+            switch (MSM) {
+                case FIRST_FIT:
+                    fmm  = new FirstFitMemorySlotManager(SystemOS.MEMORY_SIZE);
+                    fvmm = new FirstFitMemorySlotManager(SystemOS.SWAP_MEMORY_SIZE);
+                    break;
+                case BEST_FIT:
+                    fmm  = new BestFitMemorySlotManager(SystemOS.MEMORY_SIZE);
+                    fvmm = new BestFitMemorySlotManager(SystemOS.SWAP_MEMORY_SIZE);
+                    break;
+                case WORST_FIT:
+                    fmm  = new WorstFitMemorySlotManager(SystemOS.MEMORY_SIZE);
+                    fvmm = new WorstFitMemorySlotManager(SystemOS.SWAP_MEMORY_SIZE);
+                    break;
+                case NEXT_FIT:
+                    fmm  = new NextFitMemorySlotManager(SystemOS.MEMORY_SIZE);
+                    fvmm = new NextFitMemorySlotManager(SystemOS.SWAP_MEMORY_SIZE); // o FirstFit para ver menos logs
+                    break;
             }
         }
          
