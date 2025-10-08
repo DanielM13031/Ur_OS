@@ -84,6 +84,10 @@ public class OS {
                 case SEGMENTATION:
                     smm = new SMM_Segmentation(this);
                     break;
+                
+                case PAGING:
+                    smm = new SMM_Paging(this);
+                    break;
             }
              
              
