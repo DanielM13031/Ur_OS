@@ -82,8 +82,8 @@ public class SegmentTable {
     public ArrayList<SegmentTableEntry> getTable(){
         return segmentTable;
     }
-    
-    public MemoryAddress getSegmentMemoryAddressFromLocalAddress(int locAdd, boolean store){
+
+    public MemoryAddress getSegmentMemoryAddressFromLocalAddress(int locAdd, boolean store) {
         int segment = -1;
         int offset = -1;
         int baseLogicaAcumulada = 0; // Base lógica de inicio del segmento actual
@@ -92,75 +92,59 @@ public class SegmentTable {
             SegmentTableEntry entry = segmentTable.get(i);
             int limit = entry.getLimit();
             
-            // 1. Comprueba si locAdd cae en el rango lógico [baseLogicaAcumulada, baseLogicaAcumulada + limit - 1]
+            // 1. Comprueba si locAdd cae en el rango lógico del segmento actual
             if (locAdd >= baseLogicaAcumulada && locAdd < baseLogicaAcumulada + limit) {
                 segment = i;
                 offset = locAdd - baseLogicaAcumulada; // 2. Calcula el desplazamiento
                 
-                // 3. Validación de límites (aunque la condición del if ya lo asegura)
-                if (offset < 0 || offset >= limit) {
-                    System.out.println("Error: Offset fuera de los límites del segmento (Fallo de Segmentación).");
-                    return new MemoryAddress(-1, -1);
+                // 3. Marcar como 'dirty' si es una operación de escritura
+                if (store) {
+                    entry.setDirty(); // Usamos setDirty() que ya existe en la clase
                 }
                 
-                // 4. Marcar como 'dirty' si es una operación de escritura (STORE)
-                if(store){
-                    entry.markDirty();
-                }
-                      
-                System.out.println("Accessing Segment "+segment+" and offset "+offset);
-                return new MemoryAddress(segment, offset); // Retorna inmediatamente en caso de éxito
+                System.out.println("Accessing Segment " + segment + " and offset " + offset);
+                return new MemoryAddress(segment, offset); // Retorna inmediatamente al encontrarlo
             }
             
             baseLogicaAcumulada += limit; // Avanza al inicio lógico del siguiente segmento
         }
         
-        // 5. Si el bucle termina, la dirección es ilegal (Segmentation Fault)
+        // 4. Si el bucle termina, la dirección es ilegal (Segmentation Fault)
         System.out.println("Error: Dirección Lógica (" + locAdd + ") fuera de los límites del programa. Segmentation Fault.");
-        
-        //Para Memoria Virtual (El código original tenía esta parte que he movido arriba para evitar IndexOutOfBounds)
-        if(store){
-           if(segment != -1) // Protección, aunque no debería ejecutarse si se retorna arriba
-                this.segmentTable.get(segment).setDirty();
-        }
-            
-        System.out.println("Accessing Segment "+segment+" and offset "+offset);
-        return new MemoryAddress(-1, -1); // Retorno de error para el caso de no encontrar el segmento
+        return new MemoryAddress(-1, -1); // Retorno de error
     }
 
-    public MemoryAddress getPhysicalMemoryAddressFromLogicalMemoryAddress(MemoryAddress m){
-        
+    public MemoryAddress getPhysicalMemoryAddressFromLogicalMemoryAddress(MemoryAddress m) {
         // 1. Obtiene el ID del segmento y el offset
         int segmentID = m.getDivision(); 
         int offset = m.getOffset(); 
-        int physicalAddress = -1; // Inicializa la dirección física
         
         // 2. Comprobación de validez del ID del segmento
         if (segmentID < 0 || segmentID >= segmentTable.size()) {
-            System.out.println("Error: Número de segmento inválido (" + segmentID + ") en el acceso físico.");
+            System.out.println("Error: Número de segmento inválido (" + segmentID + ").");
             return new MemoryAddress(-1, -1);
         }
         
         SegmentTableEntry entry = segmentTable.get(segmentID);
         MemorySlot slot = entry.getMemorySlot();
         
-        // 3. Check si el segmento está cargado en RAM (Manejo de Memoria Virtual)
+        // 3. Verifica si el segmento tiene un slot de memoria física asignado
         if (slot == null) {
             System.out.println("Error: Segmento " + segmentID + " no está cargado en Memoria Física. Segment Fault.");
             return new MemoryAddress(-1, -1);
         }
         
         int physicalBase = slot.getBase(); // Dirección base física
-        int limit = slot.getSize(); // Tamaño (límite) del segmento
+        int limit = slot.getSize();        // Tamaño (límite) del segmento
         
-        // 4. Comprobación de límites del offset
+        // 4. Comprobación de que el offset no exceda el límite del segmento
         if (offset < 0 || offset >= limit) {
-             System.out.println("Error: Offset (" + offset + ") fuera de los límites del segmento (" + limit + ") para acceso físico.");
-             return new MemoryAddress(-1, -1);
+            System.out.println("Error: Offset (" + offset + ") fuera de los límites del segmento (" + limit + ").");
+            return new MemoryAddress(-1, -1);
         }
 
-        // 5. Cálculo de la dirección física: Base Física + Offset
-        physicalAddress = physicalBase + offset;
+        // 5. Cálculo final: la dirección física es la base física + el desplazamiento
+        int physicalAddress = physicalBase + offset;
 
         // 6. Retorna la dirección física calculada
         return new MemoryAddress(physicalAddress, 0); 
