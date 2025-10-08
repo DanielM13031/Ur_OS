@@ -6,6 +6,7 @@
 package ur_os.system;
 
 import ur_os.process.ProcessInstructionType;
+import ur_os.process.ProcessState;
 import ur_os.memory.contiguous.SMM_Contiguous;
 import ur_os.memory.Memory;
 import ur_os.memory.MemoryManagerType;
@@ -62,8 +63,8 @@ public class SystemOS implements Runnable{
         processes = new ArrayList();
         //initSimulationQueue();
         //initSimulationQueueSimple();
-        //initSimulationQueueSimpler();
-        initSimulationQueueTest();
+        initSimulationQueueSimpler();
+        //initSimulationQueueTest();
         
 
         showProcesses();
@@ -313,18 +314,19 @@ public class SystemOS implements Runnable{
         processes.add(p4);
     }
     
-    
-    
-    public boolean isSimulationFinished(){
-        
-        boolean finished = true;
-        
-        for (Process p : processes) {
-            finished = finished && p.isFinished();
+    public boolean isSimulationFinished() {
+        boolean allFinished = true;
+        if (processes.isEmpty()) {
+            return false; // Si no hay procesos, la simulación no ha terminado (o no ha empezado)
         }
-        
-        return finished;
-    
+        for (Process p : processes) {
+            // Un proceso se considera finalizado si su estado es FINISHED.
+            if (p.getState() != ProcessState.FINISHED) {
+                allFinished = false; // Si encontramos al menos uno que no ha terminado, la simulación continúa.
+                break; // No es necesario seguir revisando
+            }
+        }
+        return allFinished;
     }
 
     public SimulationType getSimulationType() {
