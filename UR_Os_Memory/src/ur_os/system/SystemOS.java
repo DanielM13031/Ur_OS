@@ -63,10 +63,9 @@ public class SystemOS implements Runnable{
         processes = new ArrayList();
         //initSimulationQueue();
         //initSimulationQueueSimple();
-        initSimulationQueueSimpler();
-        //initSimulationQueueTest();
-        
-
+        //initSimulationQueueSimpler();
+        initSimulationQueueTest();
+    
         showProcesses();
         this.simType = simType;
     }
@@ -282,49 +281,46 @@ public class SystemOS implements Runnable{
     public void initSimulationQueueTest() {
         processes.clear();
         clock = 0;
-        
-        // Proceso 0
+
+        // Proceso 0: Ocupa el inicio de la memoria
         Process p0 = new Process(0, 0);
-        p0.setSize(250);
+        p0.setSize(300);
+        p0.addCPUInstructions(10); // Larga duración para que no termine pronto
+        p0.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, 150, (byte) 1, 1));
         p0.addCPUInstructions(5);
-        p0.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, 120, (byte) 1, 1));
-        p0.addCPUInstructions(6);
         p0.addInstruction(new EndInstruction());
         processes.add(p0);
 
-        // Proceso 1
+        // Proceso 1: Se ubicará en medio y terminará pronto para crear un hueco
         Process p1 = new Process(1, 2);
-        p1.setSize(400);
-        p1.addCPUInstructions(8);
+        p1.setSize(500);
+        p1.addCPUInstructions(5); // Corta duración para que libere memoria rápido
         p1.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, 250, (byte) 2, 1));
-        p1.addCPUInstructions(7);
-        p1.addInstruction(new EndInstruction());
+        p1.addInstruction(new EndInstruction()); // Termina en el ciclo 8
         processes.add(p1);
 
-        // Proceso 2
-        Process p2 = new Process(2, 5);
-        p2.setSize(150);
-        p2.addCPUInstructions(7);
+        // Proceso 2: Ocupa memoria después de P1
+        Process p2 = new Process(2, 4);
+        p2.setSize(400);
+        p2.addCPUInstructions(12); // Larga duración
         p2.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, 100, (byte) 3, 1));
-        p2.addCPUInstructions(7);
+        p2.addCPUInstructions(4);
         p2.addInstruction(new EndInstruction());
         processes.add(p2);
 
-        // Proceso 3
-        Process p3 = new Process(3, 9);
-        p3.setSize(300);
+        // Proceso 3: Llega DESPUÉS de que P1 ha terminado
+        Process p3 = new Process(3, 10);
+        p3.setSize(450); // Un tamaño que cabe perfectamente en el hueco de P1
         p3.addCPUInstructions(6);
-        p3.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, 50, (byte) 4, 1));
-        p3.addCPUInstructions(9);
+        p3.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, 225, (byte) 4, 1));
         p3.addInstruction(new EndInstruction());
         processes.add(p3);
         
-        // Proceso 4
-        Process p4 = new Process(4, 14);
-        p4.setSize(500);
-        p4.addCPUInstructions(9);
-        p4.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, 300, (byte) 5, 1));
-        p4.addCPUInstructions(6);
+        // Proceso 4: Llega para ocupar otro espacio
+        Process p4 = new Process(4, 12);
+        p4.setSize(150); // Un tamaño pequeño para ver cómo se manejan los fragmentos
+        p4.addCPUInstructions(8);
+        p4.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, 75, (byte) 5, 1));
         p4.addInstruction(new EndInstruction());
         processes.add(p4);
     }
