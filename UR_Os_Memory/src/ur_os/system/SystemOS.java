@@ -283,33 +283,48 @@ public class SystemOS implements Runnable{
         processes.clear();
         clock = 0;
         
+        // Proceso 0
         Process p0 = new Process(0, 0);
-        p0.setSize(200);
-        p0.addCPUInstructions(8); 
+        p0.setSize(250);
+        p0.addCPUInstructions(5);
+        p0.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, 120, (byte) 1, 1));
+        p0.addCPUInstructions(6);
         p0.addInstruction(new EndInstruction());
         processes.add(p0);
 
-        Process p1 = new Process(2, 2);
-        p1.setSize(350);
-        p1.addCPUInstructions(6);
+        // Proceso 1
+        Process p1 = new Process(1, 2);
+        p1.setSize(400);
+        p1.addCPUInstructions(8);
+        p1.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, 250, (byte) 2, 1));
+        p1.addCPUInstructions(7);
         p1.addInstruction(new EndInstruction());
         processes.add(p1);
 
-        Process p2 = new Process(4, 4);
+        // Proceso 2
+        Process p2 = new Process(2, 5);
         p2.setSize(150);
-        p2.addCPUInstructions(10);
+        p2.addCPUInstructions(7);
+        p2.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, 100, (byte) 3, 1));
+        p2.addCPUInstructions(7);
         p2.addInstruction(new EndInstruction());
         processes.add(p2);
-        
-        Process p3 = new Process(6, 6);
+
+        // Proceso 3
+        Process p3 = new Process(3, 9);
         p3.setSize(300);
-        p3.addCPUInstructions(8); 
+        p3.addCPUInstructions(6);
+        p3.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, 50, (byte) 4, 1));
+        p3.addCPUInstructions(9);
         p3.addInstruction(new EndInstruction());
         processes.add(p3);
         
-        Process p4 = new Process(10, 10);
-        p4.setSize(100);
-        p4.addCPUInstructions(4); 
+        // Proceso 4
+        Process p4 = new Process(4, 14);
+        p4.setSize(500);
+        p4.addCPUInstructions(9);
+        p4.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, 300, (byte) 5, 1));
+        p4.addCPUInstructions(6);
         p4.addInstruction(new EndInstruction());
         processes.add(p4);
     }
