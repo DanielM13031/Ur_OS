@@ -37,7 +37,7 @@ public class SMM_Paging extends SystemMemoryManager{
             
             
             //Only valid for Virtual Memory
-            if(pa == null){
+            if(pa.getAddress() < 0){
                 //There was a page fault, so the page needs to be brought to memory from swap
                 
                 int pageVictim = pmmp.getVictim(); //Find a page that needs to leave memory if there is no space
@@ -72,7 +72,7 @@ public class SMM_Paging extends SystemMemoryManager{
                 return getPhysicalAddress(logicalAddress, pmm, store); //Try again!
             }else{
                 if(store){
-                    pmmp.setPageDirty(pa.getDivision(),true); //Set the accessed page for storage as dirty
+                    pmmp.setPageDirty(la.getDivision(),true);
                 }
                 return pa.getAddress();
             }
