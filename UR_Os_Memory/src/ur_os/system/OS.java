@@ -55,7 +55,7 @@ public class OS {
     boolean lazySwap;
     
     public static final int MAX_PROCESS_PRIORITY = 10; //Page size in bytes
-    public static final int PAGE_SIZE = 64; //Page size in bytes
+    public static final int PAGE_SIZE = 32*1024; //Page size in bytes
     public static final MemoryManagerType SMM = MemoryManagerType.PAGING;
     public static final FreeMemorySlotManagerType MSM = FreeMemorySlotManagerType.NEXT_FIT;
     
