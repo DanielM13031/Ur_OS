@@ -53,7 +53,7 @@ public class SystemOS implements Runnable{
 
     public SystemOS(SimulationType simType) {
         memory = new Memory(MEMORY_SIZE);
-        swap = new SwapMemory(MEMORY_SIZE);
+        swap = new SwapMemory(SWAP_MEMORY_SIZE);
         cpu = new CPU(memory,swap);
         ioq = new IOQueue();
         os = new OS(this, cpu, ioq);
