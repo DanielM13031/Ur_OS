@@ -55,13 +55,13 @@ public class OS {
     boolean lazySwap;
     
     public static final int MAX_PROCESS_PRIORITY = 10; //Page size in bytes
-    public static final int PAGE_SIZE = 64; //Page size in bytes
-    public static final MemoryManagerType SMM = MemoryManagerType.PAGING;
+    public static final int PAGE_SIZE = 32*1024; //Page size in bytes
+    public static final MemoryManagerType SMM = MemoryManagerType.CONTIGUOUS;
     public static final FreeMemorySlotManagerType MSM = FreeMemorySlotManagerType.NEXT_FIT;
     
-    public static final ProcessVirtualMemoryManagerType PVMM = ProcessVirtualMemoryManagerType.FIFO;
+    public static final ProcessVirtualMemoryManagerType PVMM = ProcessVirtualMemoryManagerType.MRU;
     public static final int FRAMES_PER_PROCESS = 3; //Maximum number of frames assigned to a process, if virtual memory is on
-    public static final boolean VIRTUAL_MEMORY_MODE_ON = false; //Maximum number of frames assigned to a process, if virtual memory is on
+    public static final boolean VIRTUAL_MEMORY_MODE_ON = true; //Maximum number of frames assigned to a process, if virtual memory is on
     
     
     public OS(SystemOS system, CPU cpu, IOQueue ioq){
@@ -317,10 +317,10 @@ public class OS {
                 }
                 p.setPMM(pmm); //Assign the newly created PMM
                 
-                /*if(!lazySwap){
+                if(!lazySwap){
                     PMM_Contiguous pmmc = (PMM_Contiguous)pmm;
                     pmmc.setMemorySlot(getMemorySlot(p.getSize())); //get free slot and assign it to the process and store the process in memory. 
-                }*/
+                }
                 break;
         }
         
@@ -340,7 +340,14 @@ public class OS {
             case MFU:
                 p.getPMM().setPVMM(new PVMM_MFU());
                 break;
-
+            
+            case TWO_Q:
+                p.getPMM().setPVMM(new PVMM_2Q());  
+                break;
+            
+            case MRU:
+                p.getPMM().setPVMM(new PVMM_MRU());  
+                break;
         }
         
         
