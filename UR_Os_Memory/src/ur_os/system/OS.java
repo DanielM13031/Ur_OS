@@ -59,7 +59,7 @@ public class OS {
     public static final MemoryManagerType SMM = MemoryManagerType.CONTIGUOUS;
     public static final FreeMemorySlotManagerType MSM = FreeMemorySlotManagerType.NEXT_FIT;
     
-    public static final ProcessVirtualMemoryManagerType PVMM = ProcessVirtualMemoryManagerType.TWO_Q;
+    public static final ProcessVirtualMemoryManagerType PVMM = ProcessVirtualMemoryManagerType.MRU;
     public static final int FRAMES_PER_PROCESS = 3; //Maximum number of frames assigned to a process, if virtual memory is on
     public static final boolean VIRTUAL_MEMORY_MODE_ON = true; //Maximum number of frames assigned to a process, if virtual memory is on
     
@@ -343,6 +343,10 @@ public class OS {
             
             case TWO_Q:
                 p.getPMM().setPVMM(new PVMM_2Q());  
+                break;
+            
+            case MRU:
+                p.getPMM().setPVMM(new PVMM_MRU());  
                 break;
         }
         
