@@ -53,7 +53,7 @@ public class SystemOS implements Runnable{
 
     public SystemOS(SimulationType simType) {
         memory = new Memory(MEMORY_SIZE);
-        swap = new SwapMemory(MEMORY_SIZE);
+        swap = new SwapMemory(SWAP_MEMORY_SIZE);
         cpu = new CPU(memory,swap);
         ioq = new IOQueue();
         os = new OS(this, cpu, ioq);
@@ -281,48 +281,72 @@ public class SystemOS implements Runnable{
     public void initSimulationQueueTest() {
         processes.clear();
         clock = 0;
+        Process p; 
+        Instruction temp; 
 
-        // Proceso 0: Ocupa el inicio de la memoria
-        Process p0 = new Process(0, 0);
-        p0.setSize(300);
-        p0.addCPUInstructions(10); // Larga duración para que no termine pronto
-        p0.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, 150, (byte) 1, 1));
-        p0.addCPUInstructions(5);
-        p0.addInstruction(new EndInstruction());
-        processes.add(p0);
+        final int P0_ADDR = 100;       // Página 0
+        final int P1_ADDR = 40000;     // Página 1
+        final int P2_ADDR = 70000;     // Página 2
+        final int P3_ADDR = 100000;    // Página 3
 
-        // Proceso 1: Se ubicará en medio y terminará pronto para crear un hueco
-        Process p1 = new Process(1, 2);
-        p1.setSize(500);
-        p1.addCPUInstructions(5); // Corta duración para que libere memoria rápido
-        p1.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, 250, (byte) 2, 1));
-        p1.addInstruction(new EndInstruction()); // Termina en el ciclo 8
-        processes.add(p1);
-
-        // Proceso 2: Ocupa memoria después de P1
-        Process p2 = new Process(2, 4);
-        p2.setSize(400);
-        p2.addCPUInstructions(12); // Larga duración
-        p2.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, 100, (byte) 3, 1));
-        p2.addCPUInstructions(4);
-        p2.addInstruction(new EndInstruction());
-        processes.add(p2);
-
-        // Proceso 3: Llega DESPUÉS de que P1 ha terminado
-        Process p3 = new Process(3, 10);
-        p3.setSize(450); // Un tamaño que cabe perfectamente en el hueco de P1
-        p3.addCPUInstructions(6);
-        p3.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, 225, (byte) 4, 1));
-        p3.addInstruction(new EndInstruction());
-        processes.add(p3);
+        // P0
+        p = new Process(0, 0);
+        p.setSize(131072); // 4 páginas
         
-        // Proceso 4: Llega para ocupar otro espacio
-        Process p4 = new Process(4, 12);
-        p4.setSize(150); // Un tamaño pequeño para ver cómo se manejan los fragmentos
-        p4.addCPUInstructions(8);
-        p4.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, 75, (byte) 5, 1));
-        p4.addInstruction(new EndInstruction());
-        processes.add(p4);
+        p.addCPUInstructions(5);
+        p.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, P1_ADDR, (byte) 1, 1)); 
+        p.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, P2_ADDR, (byte) 2, 1));
+        p.addCPUInstructions(5);
+        p.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, P3_ADDR, (byte) 3, 1));
+        p.addInstruction(new EndInstruction());
+        processes.add(p);
+
+        // P1
+        p = new Process(1, 2);
+        p.setSize(65536);
+        p.addCPUInstructions(4);
+        p.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, P1_ADDR, (byte) 4, 1));
+        temp = new IOInstruction(5); 
+        p.addInstruction(temp);
+        p.addCPUInstructions(4);
+        p.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, P0_ADDR, (byte) 5, 1));
+        p.addInstruction(new EndInstruction());
+        processes.add(p);
+
+        // P2
+        p = new Process(2, 4);
+        p.setSize(30000); 
+        p.addCPUInstructions(8);     
+        p.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, P0_ADDR, (byte) 6, 1));
+        p.addCPUInstructions(4);
+        p.addInstruction(new EndInstruction());
+        processes.add(p);
+
+        // P3
+        p = new Process(3, 10);
+        p.setSize(131072); 
+        p.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, P1_ADDR, (byte) 7, 1));
+        p.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, P2_ADDR, (byte) 8, 1));
+        p.addCPUInstructions(3);
+        temp = new IOInstruction(6); 
+        p.addInstruction(temp);
+        p.addCPUInstructions(3);
+        p.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, P3_ADDR, (byte) 9, 1));
+        p.addInstruction(new EndInstruction());
+        processes.add(p);
+        
+        // P4
+        p = new Process(4, 12);
+        p.setSize(131072);
+        p.addCPUInstructions(7);
+        p.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, P1_ADDR, (byte) 'A', 1));
+        p.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, P2_ADDR, (byte) 'B', 1));
+        temp = new IOInstruction(3); 
+        p.addInstruction(temp);
+        p.addCPUInstructions(7);
+        p.addInstruction(new MemoryInstruction(MemoryOperationType.STORE, P3_ADDR, (byte) 'C', 1));
+        p.addInstruction(new EndInstruction());
+        processes.add(p);
     }
     
     public boolean isSimulationFinished() {
